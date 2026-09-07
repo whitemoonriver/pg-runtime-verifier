@@ -14,3 +14,4 @@ All notable changes to this project will be documented here.
 - Version gating for the PostgreSQL 17+ `MAINTAIN` table privilege.
 - CI assertions for all three public outcomes: `PASS`/exit `0`, `FAIL`/exit `1`, and sanitized `ERROR`/exit `2`.
 - Committed npm lockfile and `npm ci`-based installs for reproducible dependency resolution in CI and clean checkouts.
+- Catalog-backed verification for named index existence, uniqueness, primary-key status, validity, partial predicates, and relation ownership.

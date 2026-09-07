@@ -60,6 +60,96 @@ export async function verifyConstraints(client, contracts) {
   return checks;
 }
 
+export async function verifyIndexes(client, contracts) {
+  const checks = [];
+  for (const contract of contracts) {
+    const result = await client.query(`
+      SELECT i.indisunique AS "unique",
+             i.indisprimary AS "primary",
+             i.indisvalid AS "valid",
+             pg_catalog.pg_get_expr(i.indpred, i.indrelid, false) AS predicate
+      FROM pg_catalog.pg_index AS i
+      JOIN pg_catalog.pg_class AS idx ON idx.oid = i.indexrelid
+      JOIN pg_catalog.pg_class AS tbl ON tbl.oid = i.indrelid
+      JOIN pg_catalog.pg_namespace AS n ON n.oid = tbl.relnamespace
+      WHERE n.nspname = $1
+        AND tbl.relname = $2
+        AND idx.relname = $3
+        AND idx.relnamespace = n.oid
+    `, [contract.table.schema, contract.table.name, contract.name]);
+    const actualExists = result.rowCount === 1;
+    if (!contract.exists) {
+      checks.push(check(
+        "index",
+        `${contract.table.schema}.${contract.name}`,
+        { exists: false },
+        actualExists ? {
+          exists: true,
+          unique: result.rows[0].unique === true,
+          primary: result.rows[0].primary === true,
+          valid: result.rows[0].valid === true,
+          predicate: result.rows[0].predicate ?? null,
+        } : { exists: false },
+        !actualExists,
+        { table: contract.table.qualified },
+      ));
+      continue;
+    }
+
+    const expected = {
+      exists: true,
+      unique: contract.unique,
+      primary: contract.primary,
+      valid: contract.valid,
+      predicate: contract.predicate,
+    };
+    const actual = actualExists ? {
+      exists: true,
+      unique: result.rows[0].unique === true,
+      primary: result.rows[0].primary === true,
+      valid: result.rows[0].valid === true,
+      predicate: result.rows[0].predicate ?? null,
+    } : { exists: false };
+    const pass = actualExists
+      && actual.unique === expected.unique
+      && actual.primary === expected.primary
+      && actual.valid === expected.valid
+      && actual.predicate === expected.predicate;
+    checks.push(check(
+      "index",
+      `${contract.table.schema}.${contract.name}`,
+      expected,
+      actual,
+      pass,
+      { table: contract.table.qualified },
+    ));
+  }
+  return checks;
+}
+
+export async function verifyOwnership(client, contracts) {
+  const checks = [];
+  for (const contract of contracts) {
+    const result = await client.query(`
+      SELECT r.rolname AS owner
+      FROM pg_catalog.pg_class AS c
+      JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+      JOIN pg_catalog.pg_roles AS r ON r.oid = c.relowner
+      WHERE n.nspname = $1 AND c.relname = $2
+    `, [contract.object.schema, contract.object.name]);
+    const actualExists = result.rowCount === 1;
+    const actualOwner = actualExists ? result.rows[0].owner : null;
+    checks.push(check(
+      "relation_owner",
+      contract.object.qualified,
+      { exists: true, owner: contract.owner },
+      { exists: actualExists, owner: actualOwner },
+      actualExists && actualOwner === contract.owner,
+    ));
+  }
+  return checks;
+}
+
 export async function verifyPrivileges(client, contracts) {
   const checks = [];
   for (const contract of contracts) {

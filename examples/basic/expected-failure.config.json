@@ -1,6 +1,20 @@
 {
   "database": { "urlEnv": "DATABASE_URL" },
   "verify": {
+    "indexes": [
+      {
+        "table": "public.accounts",
+        "name": "accounts_active_created_at_idx",
+        "exists": true,
+        "unique": true,
+        "primary": false,
+        "valid": true,
+        "predicate": "is_active"
+      }
+    ],
+    "ownership": [
+      { "object": "public.accounts", "owner": "postgres" }
+    ],
     "privileges": [
       {
         "role": "app_user",

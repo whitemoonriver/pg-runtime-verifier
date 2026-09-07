@@ -96,6 +96,46 @@ function validateConstraint(value, index) {
   };
 }
 
+function validateIndex(value, index) {
+  const label = `verify.indexes[${index}]`;
+  const indexContract = requireObject(value, label);
+  const exists = requireBoolean(indexContract.exists, `${label}.exists`);
+  const allowedKeys = exists
+    ? new Set(["table", "name", "exists", "unique", "primary", "valid", "predicate"])
+    : new Set(["table", "name", "exists"]);
+  assertOnlyKeys(indexContract, allowedKeys, label);
+
+  const normalized = {
+    table: parseQualifiedName(indexContract.table, `${label}.table`),
+    name: validateIdentifier(indexContract.name, `${label}.name`),
+    exists,
+  };
+  if (!exists) return normalized;
+
+  if (!Object.hasOwn(indexContract, "predicate")) {
+    throw new ConfigurationError(`${label}.predicate must be a string or null when the index is expected to exist.`);
+  }
+  let predicate = null;
+  if (indexContract.predicate !== null) predicate = requireString(indexContract.predicate, `${label}.predicate`);
+  return {
+    ...normalized,
+    unique: requireBoolean(indexContract.unique, `${label}.unique`),
+    primary: requireBoolean(indexContract.primary, `${label}.primary`),
+    valid: requireBoolean(indexContract.valid, `${label}.valid`),
+    predicate,
+  };
+}
+
+function validateOwnership(value, index) {
+  const label = `verify.ownership[${index}]`;
+  const ownership = requireObject(value, label);
+  assertOnlyKeys(ownership, new Set(["object", "owner"]), label);
+  return {
+    object: parseQualifiedName(ownership.object, `${label}.object`),
+    owner: validateIdentifier(ownership.owner, `${label}.owner`),
+  };
+}
+
 function validatePrivilege(value, index) {
   const label = `verify.privileges[${index}]`;
   const privilege = requireObject(value, label);
@@ -137,7 +177,7 @@ function validateConfig(raw, configPath) {
   }
 
   const verify = requireObject(config.verify, "verify");
-  assertOnlyKeys(verify, new Set(["tables", "constraints", "privileges", "cleanliness"]), "verify");
+  assertOnlyKeys(verify, new Set(["tables", "constraints", "indexes", "ownership", "privileges", "cleanliness"]), "verify");
   const normalized = {
     configPath,
     configDir: path.dirname(configPath),
@@ -146,12 +186,14 @@ function validateConfig(raw, configPath) {
     verify: {
       tables: optionalArray(verify.tables, "verify.tables").map(validateTable),
       constraints: optionalArray(verify.constraints, "verify.constraints").map(validateConstraint),
+      indexes: optionalArray(verify.indexes, "verify.indexes").map(validateIndex),
+      ownership: optionalArray(verify.ownership, "verify.ownership").map(validateOwnership),
       privileges: optionalArray(verify.privileges, "verify.privileges").map(validatePrivilege),
       cleanliness: validateCleanliness(verify.cleanliness),
     },
   };
 
-  const checkCount = normalized.verify.tables.length + normalized.verify.constraints.length + normalized.verify.privileges.length + (normalized.verify.cleanliness === null ? 0 : 1);
+  const checkCount = normalized.verify.tables.length + normalized.verify.constraints.length + normalized.verify.indexes.length + normalized.verify.ownership.length + normalized.verify.privileges.length + (normalized.verify.cleanliness === null ? 0 : 1);
   if (checkCount === 0) throw new ConfigurationError("verify must contain at least one assertion.");
   return normalized;
 }

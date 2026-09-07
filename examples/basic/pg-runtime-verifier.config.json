@@ -9,13 +9,29 @@
         "columns": [
           { "name": "id", "type": "bigint", "nullable": false },
           { "name": "email", "type": "text", "nullable": false },
-          { "name": "created_at", "type": "timestamp with time zone", "nullable": false }
+          { "name": "created_at", "type": "timestamp with time zone", "nullable": false },
+          { "name": "is_active", "type": "boolean", "nullable": false }
         ]
       }
     ],
     "constraints": [
       { "table": "public.accounts", "name": "accounts_pkey", "type": "PRIMARY KEY", "exists": true },
       { "table": "public.accounts", "name": "accounts_email_key", "type": "UNIQUE", "exists": true }
+    ],
+    "indexes": [
+      {
+        "table": "public.accounts",
+        "name": "accounts_active_created_at_idx",
+        "exists": true,
+        "unique": false,
+        "primary": false,
+        "valid": true,
+        "predicate": "is_active"
+      }
+    ],
+    "ownership": [
+      { "object": "public.accounts", "owner": "app_owner" },
+      { "object": "public.accounts_active_created_at_idx", "owner": "app_owner" }
     ],
     "privileges": [
       { "role": "app_user", "object": "public.accounts", "privilege": "SELECT", "allowed": true },
