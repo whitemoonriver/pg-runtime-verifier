@@ -8,6 +8,20 @@ permissions:
   contents: read
 
 jobs:
+  lockfile:
+    name: Generate package lock
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --package-lock-only --ignore-scripts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: package-lock.json
+
   unit:
     name: Unit (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
