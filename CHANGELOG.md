@@ -9,5 +9,7 @@ All notable changes to this project will be documented here.
 - Initial runtime verification contract for PostgreSQL tables, columns, named constraints, effective table privileges, and `idle in transaction` cleanliness.
 - Sanitized JSON evidence output.
 - Migration-command adapter and synthetic integration example.
-- Linux and Windows unit-test CI plus PostgreSQL 17 integration CI.
+- Linux and Windows unit-test CI.
+- PostgreSQL 16, 17, and 18 integration CI with an explicit fail-closed compatibility range.
+- Version gating for the PostgreSQL 17+ `MAINTAIN` table privilege.
 - CI assertions for all three public outcomes: `PASS`/exit `0`, `FAIL`/exit `1`, and sanitized `ERROR`/exit `2`.

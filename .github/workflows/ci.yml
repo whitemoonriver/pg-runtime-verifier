@@ -27,11 +27,15 @@ jobs:
       - run: node ./bin/pg-runtime-verifier.js --help
 
   postgres-integration:
-    name: PostgreSQL 17 integration
+    name: PostgreSQL ${{ matrix.postgres }} integration
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [16, 17, 18]
     services:
       postgres:
-        image: postgres:17
+        image: postgres:${{ matrix.postgres }}
         env:
           POSTGRES_PASSWORD: postgres
         ports:
@@ -61,7 +65,7 @@ jobs:
           node -e "const fs=require('node:fs');
           const e=JSON.parse(fs.readFileSync('./artifacts/example-verification.json','utf8'));
           if(e.status!=='PASS'||e.summary.failed!==0) process.exit(1);
-          console.log(e.summary);"
+          console.log(e.database.serverVersion, e.summary);"
 
       - name: Assert expected FAIL semantics
         shell: bash
@@ -93,5 +97,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: pg-runtime-verifier-evidence
+          name: pg-runtime-verifier-evidence-pg${{ matrix.postgres }}
           path: artifacts/*.json
