@@ -14,6 +14,14 @@
     "test": "node --test",
     "verify:example": "node ./bin/pg-runtime-verifier.js run --config ./examples/basic/pg-runtime-verifier.config.json --output ./artifacts/example-verification.json"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whitemoonriver/pg-runtime-verifier.git"
+  },
+  "bugs": {
+    "url": "https://github.com/whitemoonriver/pg-runtime-verifier/issues"
+  },
+  "homepage": "https://github.com/whitemoonriver/pg-runtime-verifier#readme",
   "keywords": ["postgres", "postgresql", "database", "migration", "verification", "ci", "devops"],
   "license": "MIT",
   "engines": {
