@@ -29,6 +29,60 @@ test("readConfig accepts the minimal supported contract", async () => {
   assert.equal(config.verify.tables[0].name.qualified, "public.accounts");
 });
 
+test("readConfig accepts index and ownership assertions", async () => {
+  const configPath = await writeConfig({
+    database: { urlEnv: "DATABASE_URL" },
+    verify: {
+      indexes: [{
+        table: "public.accounts",
+        name: "accounts_active_created_at_idx",
+        exists: true,
+        unique: false,
+        primary: false,
+        valid: true,
+        predicate: "is_active",
+      }],
+      ownership: [{ object: "public.accounts", owner: "app_owner" }],
+    },
+  });
+  const config = await readConfig(configPath);
+  assert.equal(config.verify.indexes[0].table.qualified, "public.accounts");
+  assert.equal(config.verify.indexes[0].predicate, "is_active");
+  assert.equal(config.verify.ownership[0].owner, "app_owner");
+});
+
+test("readConfig requires an explicit predicate for an existing index", async () => {
+  const configPath = await writeConfig({
+    database: { urlEnv: "DATABASE_URL" },
+    verify: {
+      indexes: [{
+        table: "public.accounts",
+        name: "accounts_active_created_at_idx",
+        exists: true,
+        unique: false,
+        primary: false,
+        valid: true,
+      }],
+    },
+  });
+  await assert.rejects(readConfig(configPath), /predicate must be a string or null/);
+});
+
+test("readConfig keeps absent-index assertions existence-only", async () => {
+  const configPath = await writeConfig({
+    database: { urlEnv: "DATABASE_URL" },
+    verify: {
+      indexes: [{
+        table: "public.accounts",
+        name: "unexpected_idx",
+        exists: false,
+        unique: false,
+      }],
+    },
+  });
+  await assert.rejects(readConfig(configPath), /unsupported key "unique"/);
+});
+
 test("readConfig rejects a literal database URL key", async () => {
   const configPath = await writeConfig({ database: { urlEnv: "DATABASE_URL", url: "postgres://user:secret@example.invalid/db" }, verify: { tables: [{ name: "public.accounts", exists: true }] } });
   await assert.rejects(readConfig(configPath), /unsupported key "url"/);

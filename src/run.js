@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import pg from "pg";
 
 import { readConfig } from "./config.js";
-import { verifyCleanliness, verifyConstraints, verifyPrivileges, verifyTables } from "./checks.js";
+import { verifyCleanliness, verifyConstraints, verifyIndexes, verifyOwnership, verifyPrivileges, verifyTables } from "./checks.js";
 import { assertPostgresCompatibility } from "./compatibility.js";
 import { buildEvidence } from "./evidence.js";
 
@@ -58,6 +58,8 @@ export async function runVerifier({ configPath = "pg-runtime-verifier.config.jso
     checks.push(
       ...(await verifyTables(client, config.verify.tables)),
       ...(await verifyConstraints(client, config.verify.constraints)),
+      ...(await verifyIndexes(client, config.verify.indexes)),
+      ...(await verifyOwnership(client, config.verify.ownership)),
       ...(await verifyPrivileges(client, config.verify.privileges)),
       ...(await verifyCleanliness(client, config.verify.cleanliness)),
     );
