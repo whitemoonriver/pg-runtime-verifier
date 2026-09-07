@@ -49,18 +49,49 @@ jobs:
         with:
           node-version: 22
       - run: npm install
+
       - name: Run synthetic verification
         run: >-
           node ./bin/pg-runtime-verifier.js run
           --config ./examples/basic/pg-runtime-verifier.config.json
           --output ./artifacts/example-verification.json
-      - name: Assert evidence
+
+      - name: Assert PASS evidence
         run: >-
           node -e "const fs=require('node:fs');
           const e=JSON.parse(fs.readFileSync('./artifacts/example-verification.json','utf8'));
           if(e.status!=='PASS'||e.summary.failed!==0) process.exit(1);
           console.log(e.summary);"
+
+      - name: Assert expected FAIL semantics
+        shell: bash
+        run: |
+          set +e
+          node ./bin/pg-runtime-verifier.js run \
+            --config ./examples/basic/expected-failure.config.json \
+            --skip-migration \
+            --output ./artifacts/expected-failure.json
+          code=$?
+          set -e
+          test "$code" -eq 1
+          node -e "const fs=require('node:fs'); const e=JSON.parse(fs.readFileSync('./artifacts/expected-failure.json','utf8')); if(e.status!=='FAIL'||e.summary.failed<1) process.exit(1); console.log(e.summary);"
+
+      - name: Assert ERROR evidence redaction
+        shell: bash
+        env:
+          BROKEN_DATABASE_URL: postgresql://alice:super-secret@127.0.0.1:1/postgres
+        run: |
+          set +e
+          node ./bin/pg-runtime-verifier.js run \
+            --config ./examples/basic/expected-error.config.json \
+            --skip-migration \
+            --output ./artifacts/expected-error.json
+          code=$?
+          set -e
+          test "$code" -eq 2
+          node -e "const fs=require('node:fs'); const raw=fs.readFileSync('./artifacts/expected-error.json','utf8'); if(raw.includes('super-secret')||raw.includes('postgresql://alice:')) process.exit(1); const e=JSON.parse(raw); if(e.status!=='ERROR') process.exit(1); console.log(e.status);"
+
       - uses: actions/upload-artifact@v4
         with:
           name: pg-runtime-verifier-evidence
-          path: artifacts/example-verification.json
+          path: artifacts/*.json

@@ -1,0 +1,14 @@
+{
+  "database": { "urlEnv": "DATABASE_URL" },
+  "verify": {
+    "privileges": [
+      {
+        "role": "app_user",
+        "object": "public.accounts",
+        "privilege": "DELETE",
+        "allowed": true
+      }
+    ],
+    "cleanliness": { "maxIdleInTransaction": 0 }
+  }
+}
