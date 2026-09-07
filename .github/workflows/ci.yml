@@ -42,7 +42,7 @@ jobs:
           npm pack --dry-run --json > pack-dry-run.json
           node -e "const fs=require('node:fs'); const report=JSON.parse(fs.readFileSync('pack-dry-run.json','utf8'))[0]; const files=report.files.map((entry)=>entry.path); const required=['package.json','README.md','LICENSE','bin/pg-runtime-verifier.js','src/index.js']; for(const file of required){if(!files.includes(file)){console.error('missing packed file:',file);process.exit(1);}} const forbidden=['.github/','examples/','test/','artifacts/']; for(const prefix of forbidden){if(files.some((file)=>file.startsWith(prefix))){console.error('unexpected packed path:',prefix);process.exit(1);}} console.log(files);"
 
-      - name: Install packed CLI in a clean consumer
+      - name: Install and invoke packed CLI as a consumer
         shell: bash
         run: |
           npm pack --json --pack-destination "$RUNNER_TEMP" > pack.json
@@ -50,8 +50,9 @@ jobs:
           consumer=$(mktemp -d)
           cd "$consumer"
           npm init -y >/dev/null
-          npm install "$RUNNER_TEMP/$archive"
-          ./node_modules/.bin/pg-runtime-verifier --help
+          npm install --save-dev "$RUNNER_TEMP/$archive"
+          npx pg-runtime-verifier --help
+          npm exec -- pg-runtime-verifier --version
 
   postgres-integration:
     name: PostgreSQL ${{ matrix.postgres }} integration

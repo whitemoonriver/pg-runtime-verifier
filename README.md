@@ -26,7 +26,7 @@ Migration success alone does not prove that the resulting database matches the i
 
 ## Status
 
-**Early development / v0.1 foundation.** The public API may still change. The initial scope is deliberately narrow:
+**v0.1.0 release candidate.** The public API may still change. The initial scope is deliberately narrow:
 
 1. run an existing migration command;
 2. verify tables and columns;
@@ -37,11 +37,11 @@ Migration success alone does not prove that the resulting database matches the i
 7. verify an `idle in transaction` ceiling;
 8. emit sanitized JSON evidence.
 
-Fault injection, concurrency probes, planner assertions, runtime allow/deny probes, and broader index semantics are planned after the foundation is stable.
+Fault injection, concurrency probes, planner assertions, runtime allow/deny probes, and broader index semantics are outside the v0.1.0 release scope.
 
 ## PostgreSQL compatibility
 
-The v0.1 foundation is CI-tested against PostgreSQL **16, 17, and 18** and fails closed outside that tested range.
+v0.1.0 is CI-tested against PostgreSQL **16, 17, and 18** and fails closed outside that tested range. It requires **Node.js 20 or later**.
 
 The `MAINTAIN` table privilege is version-sensitive: PostgreSQL 17 introduced it. A contract that requests `MAINTAIN` against PostgreSQL 16 is rejected as an execution error before privilege verification begins. Other supported table privileges use the common PostgreSQL 16-18 surface.
 
@@ -49,24 +49,34 @@ Index assertions read PostgreSQL catalog state directly. Partial predicates are 
 
 ### Index assertion boundary
 
-The v0.1 index contract intentionally checks a small, deterministic surface: existence, `unique`, `primary`, `valid`, and the partial-index predicate. For an index expected to exist, `predicate` must be either the exact PostgreSQL-decompiled expression text or `null` for a non-partial index.
+The v0.1.0 index contract intentionally checks a small, deterministic surface: existence, `unique`, `primary`, `valid`, and the partial-index predicate. For an index expected to exist, `predicate` must be either the exact PostgreSQL-decompiled expression text or `null` for a non-partial index.
 
-Predicate comparison is textual after PostgreSQL decompiles the stored expression; it does **not** claim general semantic equivalence between differently written SQL expressions. Expression-index keys, operator classes, collations, sort direction, included columns, and `NULLS NOT DISTINCT` are not yet part of this contract.
+Predicate comparison is textual after PostgreSQL decompiles the stored expression; it does **not** claim general semantic equivalence between differently written SQL expressions. Expression-index keys, operator classes, collations, sort direction, included columns, and `NULLS NOT DISTINCT` are not part of the v0.1.0 contract.
 
-Object names remain explicitly schema-qualified and use unquoted PostgreSQL identifiers in v0.1, avoiding `search_path`-dependent lookup.
+Object names remain explicitly schema-qualified and use unquoted PostgreSQL identifiers in v0.1.0, avoiding `search_path`-dependent lookup.
 
-## Quick start
+## Install and run
 
-Requires Node.js 20+ and PostgreSQL 16, 17, or 18. Use a database that is safe for the migration command you provide.
+Requirements:
+
+- Node.js **20+**;
+- PostgreSQL **16, 17, or 18**;
+- a database that is safe for the migration command you configure.
+
+Install the verifier as a project development dependency:
 
 ```bash
-npm ci
-cp examples/basic/pg-runtime-verifier.config.json pg-runtime-verifier.config.json
-export DATABASE_URL='postgres://...'
-node ./bin/pg-runtime-verifier.js run
+npm install --save-dev pg-runtime-verifier
 ```
 
-The configuration stores only the **name of the environment variable** containing the connection string, never the connection string itself:
+The package exposes the `pg-runtime-verifier` executable. After installation, `npx` or `npm exec` provides a portable way to invoke it on Linux or Windows:
+
+```bash
+npx pg-runtime-verifier --help
+npm exec -- pg-runtime-verifier --version
+```
+
+Create `pg-runtime-verifier.config.json`. The configuration stores only the **name of the environment variable** containing the connection string, never the connection string itself:
 
 ```json
 {
@@ -132,10 +142,10 @@ The configuration stores only the **name of the environment variable** containin
 }
 ```
 
-Run it:
+Set `DATABASE_URL` in the environment of the process running the verifier, then execute the contract:
 
 ```bash
-node ./bin/pg-runtime-verifier.js run \
+npx pg-runtime-verifier run \
   --config pg-runtime-verifier.config.json \
   --output artifacts/verification.json
 ```
@@ -164,11 +174,26 @@ A successful evidence file has this shape:
 
 Connection strings and passwords are not written to evidence output.
 
+For a synthetic repository example, see [`examples/basic`](examples/basic).
+
 ## Exit codes
 
 - `0` — all configured assertions passed;
 - `1` — one or more verification assertions failed;
 - `2` — configuration, migration, connection, compatibility, or verifier execution failed.
+
+## Current boundaries
+
+v0.1.0 deliberately does not:
+
+- own, generate, or rewrite migrations;
+- infer database safety from SQL text alone;
+- run destructive runtime allow/deny or fault-injection probes;
+- claim semantic equivalence for differently written SQL predicates;
+- support PostgreSQL versions outside the CI-tested 16-18 range;
+- store database URLs or credentials in the verifier configuration or evidence output.
+
+The verifier's catalog and privilege checks are read-oriented, but the **configured migration command can modify or destroy data**. Run it only against a database you explicitly intend to migrate; use disposable or dedicated test databases for CI and evaluation.
 
 ## Design principles
 
@@ -179,8 +204,6 @@ Connection strings and passwords are not written to evidence output.
 - **Small contracts first.** Add checks only when their semantics can be stated precisely and tested.
 
 ## Security and safety
-
-Run migrations only against a database you explicitly intend to modify. The verifier itself performs read-oriented catalog and privilege checks, but the configured migration command may be destructive.
 
 Please do not put credentials directly in configuration files or issue reports. Use environment variables and redact sensitive diagnostics. See [SECURITY.md](SECURITY.md).
 
