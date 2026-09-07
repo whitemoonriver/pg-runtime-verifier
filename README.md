@@ -46,7 +46,7 @@ The `MAINTAIN` table privilege is version-sensitive: PostgreSQL 17 introduced it
 Requires Node.js 20+ and PostgreSQL 16, 17, or 18. Use a database that is safe for the migration command you provide.
 
 ```bash
-npm install
+npm ci
 cp examples/basic/pg-runtime-verifier.config.json pg-runtime-verifier.config.json
 export DATABASE_URL='postgres://...'
 node ./bin/pg-runtime-verifier.js run

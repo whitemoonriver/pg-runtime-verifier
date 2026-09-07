@@ -10,12 +10,12 @@ Requirements:
 
 - Node.js 20+
 - npm
-- PostgreSQL 17+ only when running the integration example
+- PostgreSQL 16, 17, or 18 only when running the integration example
 
 Install dependencies and run unit tests:
 
 ```bash
-npm install
+npm ci
 npm test
 ```
 
