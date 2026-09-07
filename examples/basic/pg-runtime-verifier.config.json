@@ -1,0 +1,28 @@
+{
+  "database": { "urlEnv": "DATABASE_URL" },
+  "migration": { "command": "node ./migrate.js" },
+  "verify": {
+    "tables": [
+      {
+        "name": "public.accounts",
+        "exists": true,
+        "columns": [
+          { "name": "id", "type": "bigint", "nullable": false },
+          { "name": "email", "type": "text", "nullable": false },
+          { "name": "created_at", "type": "timestamp with time zone", "nullable": false }
+        ]
+      }
+    ],
+    "constraints": [
+      { "table": "public.accounts", "name": "accounts_pkey", "type": "PRIMARY KEY", "exists": true },
+      { "table": "public.accounts", "name": "accounts_email_key", "type": "UNIQUE", "exists": true }
+    ],
+    "privileges": [
+      { "role": "app_user", "object": "public.accounts", "privilege": "SELECT", "allowed": true },
+      { "role": "app_user", "object": "public.accounts", "privilege": "INSERT", "allowed": true },
+      { "role": "app_user", "object": "public.accounts", "privilege": "UPDATE", "allowed": false },
+      { "role": "app_user", "object": "public.accounts", "privilege": "DELETE", "allowed": false }
+    ],
+    "cleanliness": { "maxIdleInTransaction": 0 }
+  }
+}

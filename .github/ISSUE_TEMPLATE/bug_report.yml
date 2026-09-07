@@ -1,0 +1,49 @@
+name: Bug report
+description: Report reproducible verifier behavior
+title: "[bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please use only synthetic or redacted data and never paste credentials or full database URLs.
+  - type: input
+    id: version
+    attributes:
+      label: pg-runtime-verifier version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: postgres
+    attributes:
+      label: PostgreSQL version
+      placeholder: "17.6"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Node.js and operating system
+      placeholder: "Node 22, Windows 11 / Ubuntu 24.04"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal synthetic reproduction
+      description: Include a small config and steps. Redact secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true

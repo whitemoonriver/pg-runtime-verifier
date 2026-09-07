@@ -1,0 +1,29 @@
+name: Verification feature
+description: Propose a narrowly scoped PostgreSQL assertion
+title: "[proposal] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Strong proposals define the PostgreSQL invariant precisely and explain how it can be verified deterministically.
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Invariant
+      description: What exact PostgreSQL fact or behavior should the verifier assert?
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why this belongs in a runtime verifier
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Proposed evidence shape
+      description: What should PASS/FAIL evidence contain without exposing secrets?
+    validations:
+      required: false

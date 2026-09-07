@@ -1,0 +1,25 @@
+{
+  "name": "pg-runtime-verifier",
+  "version": "0.1.0",
+  "description": "Verify what PostgreSQL actually enforces after your migrations.",
+  "type": "module",
+  "bin": {
+    "pg-runtime-verifier": "./bin/pg-runtime-verifier.js"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": ["bin", "src", "README.md", "LICENSE"],
+  "scripts": {
+    "test": "node --test",
+    "verify:example": "node ./bin/pg-runtime-verifier.js run --config ./examples/basic/pg-runtime-verifier.config.json --output ./artifacts/example-verification.json"
+  },
+  "keywords": ["postgres", "postgresql", "database", "migration", "verification", "ci", "devops"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}
