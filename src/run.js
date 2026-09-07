@@ -3,6 +3,7 @@ import pg from "pg";
 
 import { readConfig } from "./config.js";
 import { verifyCleanliness, verifyConstraints, verifyPrivileges, verifyTables } from "./checks.js";
+import { assertPostgresCompatibility } from "./compatibility.js";
 import { buildEvidence } from "./evidence.js";
 
 const { Client } = pg;
@@ -52,6 +53,7 @@ export async function runVerifier({ configPath = "pg-runtime-verifier.config.jso
   await client.connect();
   try {
     const database = await readDatabaseMetadata(client);
+    assertPostgresCompatibility(database, config);
     const checks = [];
     checks.push(
       ...(await verifyTables(client, config.verify.tables)),

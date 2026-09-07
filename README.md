@@ -35,9 +35,15 @@ Migration success alone does not prove that the resulting database matches the i
 
 Fault injection, concurrency probes, planner assertions, richer privilege probes, and additional catalog object types are planned after the foundation is stable.
 
+## PostgreSQL compatibility
+
+The v0.1 foundation is CI-tested against PostgreSQL **16, 17, and 18** and fails closed outside that tested range.
+
+The `MAINTAIN` table privilege is version-sensitive: PostgreSQL 17 introduced it. A contract that requests `MAINTAIN` against PostgreSQL 16 is rejected as an execution error before privilege verification begins. Other supported table privileges use the common PostgreSQL 16-18 surface.
+
 ## Quick start
 
-Requires Node.js 20+ and a PostgreSQL database that is safe for the migration command you provide.
+Requires Node.js 20+ and PostgreSQL 16, 17, or 18. Use a database that is safe for the migration command you provide.
 
 ```bash
 npm install
@@ -131,13 +137,13 @@ Connection strings and passwords are not written to evidence output.
 
 - `0` — all configured assertions passed;
 - `1` — one or more verification assertions failed;
-- `2` — configuration, migration, connection, or verifier execution failed.
+- `2` — configuration, migration, connection, compatibility, or verifier execution failed.
 
 ## Design principles
 
 - **Runtime over inference.** Ask PostgreSQL what exists and what a role can do.
 - **Migration-framework agnostic.** The verifier does not own schema changes.
-- **Fail closed.** Configuration and execution errors do not become successful evidence.
+- **Fail closed.** Configuration, compatibility, and execution errors do not become successful evidence.
 - **Secret-minimal evidence.** Never serialize the configured database URL.
 - **Small contracts first.** Add checks only when their semantics can be stated precisely and tested.
 
@@ -145,11 +151,11 @@ Connection strings and passwords are not written to evidence output.
 
 Run migrations only against a database you explicitly intend to modify. The verifier itself performs read-oriented catalog and privilege checks, but the configured migration command may be destructive.
 
-Please do not put credentials directly in configuration files or issue reports. Use environment variables and redact sensitive diagnostics. See [SECURITY.md](SECURITY.md) once available in the bootstrap commit.
+Please do not put credentials directly in configuration files or issue reports. Use environment variables and redact sensitive diagnostics. See [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
-Bug reports, portability feedback, and narrowly scoped verification ideas are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) once available in the bootstrap commit.
+Bug reports, portability feedback, and narrowly scoped verification ideas are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
