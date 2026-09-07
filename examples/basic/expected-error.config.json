@@ -1,0 +1,11 @@
+{
+  "database": { "urlEnv": "BROKEN_DATABASE_URL" },
+  "verify": {
+    "tables": [
+      {
+        "name": "public.accounts",
+        "exists": true
+      }
+    ]
+  }
+}

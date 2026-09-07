@@ -10,3 +10,4 @@ All notable changes to this project will be documented here.
 - Sanitized JSON evidence output.
 - Migration-command adapter and synthetic integration example.
 - Linux and Windows unit-test CI plus PostgreSQL 17 integration CI.
+- CI assertions for all three public outcomes: `PASS`/exit `0`, `FAIL`/exit `1`, and sanitized `ERROR`/exit `2`.
