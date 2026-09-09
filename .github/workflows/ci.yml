@@ -36,6 +36,12 @@ jobs:
           node-version: 22
       - run: npm ci
 
+      - name: Require normalized package metadata
+        shell: bash
+        run: |
+          npm pkg fix
+          git diff --exit-code -- package.json
+
       - name: Inspect packed file set
         shell: bash
         run: |
