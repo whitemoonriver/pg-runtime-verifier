@@ -24,9 +24,26 @@ Migration success alone does not prove that the resulting database matches the i
 
 `pg-runtime-verifier` turns those assertions into an executable contract.
 
+## When this is a good fit
+
+Use `pg-runtime-verifier` when:
+
+- you already have a migration workflow and do not want another tool to own or rewrite it;
+- you need a small set of PostgreSQL-specific invariants to fail CI deterministically after migration;
+- catalog details such as partial-index predicates, relation ownership, or effective privileges matter to application correctness or deployment safety;
+- you want machine-readable evidence of what the migrated database actually enforces.
+
+It is deliberately narrower than a general schema-diff or declarative schema-management system. If your primary goal is to generate migrations, reconcile two complete schemas, or make a tool own the desired schema state, use a migration or schema-management tool for that job and use `pg-runtime-verifier` only where explicit post-migration runtime assertions add value.
+
+## How it differs from drift detection
+
+Schema-drift tools generally compare a live database with another schema representation, migration history, snapshot, or declared source of truth. `pg-runtime-verifier` instead evaluates explicitly configured runtime invariants against the PostgreSQL instance after your migration step.
+
+That distinction is intentional: the verifier does not try to prove that every database object is identical to a complete expected schema. It proves only the invariants you chose to make release-blocking, using PostgreSQL catalog and privilege semantics directly.
+
 ## Status
 
-**v0.1.0 release candidate.** The public API may still change. The initial scope is deliberately narrow:
+**v0.1.0 is released on npm and GitHub.** The public API may still change. The initial scope is deliberately narrow:
 
 1. run an existing migration command;
 2. verify tables and columns;
