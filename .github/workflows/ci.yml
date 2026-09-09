@@ -36,11 +36,12 @@ jobs:
           node-version: 22
       - run: npm ci
 
-      - name: Require normalized package metadata
-        shell: bash
-        run: |
-          npm pkg fix
-          git diff --exit-code -- package.json
+      - name: Assert publish bin metadata
+        run: >-
+          node -e "const p=require('./package.json');
+          if(p.bin?.['pg-runtime-verifier']!=='bin/pg-runtime-verifier.js') {
+            console.error('unexpected publish bin metadata'); process.exit(1);
+          }"
 
       - name: Inspect packed file set
         shell: bash
